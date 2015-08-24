@@ -4,7 +4,7 @@
 	name="Tiler"
 	id="com.syedrezaali.Tiler"
 	git="git://github.com/rezaali/Cinder-Tiler.git"
-	url="http://www.syedrezaali.com/#/Tiler/"
+	url="https://github.com/rezaali/Cinder-Tiler"
 	author="Reza Ali syed.reza.ali@gmail.com"
 	summary="Tiler is a library that helps render out high resolution images"
 	license="MIT"
