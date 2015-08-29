@@ -1,6 +1,7 @@
 #pragma once
 
 #include "cinder/Cinder.h"
+#include "cinder/app/Window.h"
 #include "cinder/gl/gl.h"
 #include "cinder/Exception.h"
 #include "cinder/Surface.h"
@@ -13,9 +14,14 @@ namespace reza { namespace tiler {
 typedef std::shared_ptr<class Tiler> TilerRef;
 class Tiler {
 public:
-    static TilerRef create( int32_t imageWidth, int32_t imageHeight, int32_t tileWidth = 512, int32_t tileHeight = 512 )
+    static TilerRef create( glm::ivec2 imageSize, glm::ivec2 tileSize = glm::ivec2( 512, 512 ), ci::app::WindowRef window = ci::app::getWindow() )
     {
-        return TilerRef( new Tiler( imageWidth, imageHeight, tileWidth, tileHeight ) );
+        return TilerRef( new Tiler( imageSize.x, imageSize.y, tileSize.x, tileSize.y, window ) );
+    }
+    
+    static TilerRef create( int32_t imageWidth, int32_t imageHeight, int32_t tileWidth = 512, int32_t tileHeight = 512, ci::app::WindowRef window = ci::app::getWindow() )
+    {
+        return TilerRef( new Tiler( imageWidth, imageHeight, tileWidth, tileHeight, window ) );
     }
     
     bool nextTile();
@@ -37,9 +43,11 @@ public:
     void ortho( float left, float right, float bottom, float top, float nearPlane, float farPlane ); 
     
 protected:
-    Tiler( int32_t imageWidth, int32_t imageHeight, int32_t tileWidth = 512, int32_t tileHeight = 512 );
+    Tiler( int32_t imageWidth, int32_t imageHeight, int32_t tileWidth = 512, int32_t tileHeight = 512, ci::app::WindowRef window = ci::app::getWindow() );
     
     void update();
+    
+    ci::app::WindowRef mWindowRef;
     
     int32_t mWindowWidth, mWindowHeight; 
     int32_t mImageWidth, mImageHeight;

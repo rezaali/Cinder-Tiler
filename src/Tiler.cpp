@@ -11,17 +11,17 @@ using namespace cinder;
 using namespace glm;
 using namespace std;
 
-Tiler::Tiler( int32_t imageWidth, int32_t imageHeight, int32_t tileWidth, int32_t tileHeight )
-: mImageWidth( app::toPixels( imageWidth ) ), mImageHeight( app::toPixels( imageHeight ) ), mDrawFn( nullptr ), mDrawBgFn( nullptr ), mDrawHudFn( nullptr )
+Tiler::Tiler( int32_t imageWidth, int32_t imageHeight, int32_t tileWidth, int32_t tileHeight, ci::app::WindowRef window )
+: mImageWidth( app::toPixels( imageWidth ) ), mImageHeight( app::toPixels( imageHeight ) ), mWindowRef( window ), mDrawFn( nullptr ), mDrawBgFn( nullptr ), mDrawHudFn( nullptr )
 {
-    mWindowWidth = app::toPixels( ci::app::getWindowWidth() );
-    mWindowHeight = app::toPixels( ci::app::getWindowHeight() );
+    mWindowWidth = app::toPixels( mWindowRef->getWidth() );
+    mWindowHeight = app::toPixels( mWindowRef->getHeight() );
     
-    mTileWidth = std::min( (int32_t)app::toPixels( tileWidth ), mWindowWidth );
-    mTileHeight = std::min( (int32_t)app::toPixels( tileHeight ), mWindowHeight );
+    mTileWidth = std::min( ( int32_t ) app::toPixels( tileWidth ), mWindowWidth );
+    mTileHeight = std::min( ( int32_t ) app::toPixels( tileHeight ), mWindowHeight );
 
-    mNumTilesX = (int32_t) ceil( mImageWidth / (float)mTileWidth );
-    mNumTilesY = (int32_t) ceil( mImageHeight / (float)mTileHeight );
+    mNumTilesX = ( int32_t ) ceil( mImageWidth / (float)mTileWidth );
+    mNumTilesY = ( int32_t ) ceil( mImageHeight / (float)mTileHeight );
     
     mCurrentTile = -1;
     
@@ -36,7 +36,7 @@ bool Tiler::nextTile()
 {
     if( mCurrentTile >= mNumTilesX * mNumTilesY ) {
         // suck the pixels out of the final tile
-        mSurface.copyFrom( app::copyWindowSurface(), Area( 0, 0, mCurrentArea.getWidth(), mCurrentArea.getHeight() ), mCurrentArea.getUL() );
+        mSurface.copyFrom( mWindowRef->getRenderer()->copyWindowSurface( Area( ivec2( 0 ) , mWindowRef->getSize() ), mWindowRef->getHeight() ), Area( 0, 0, mCurrentArea.getWidth(), mCurrentArea.getHeight() ), mCurrentArea.getUL() );
         mCurrentTile = -1;
         return false;
     }
@@ -48,7 +48,7 @@ bool Tiler::nextTile()
     }
     else {
         // suck the pixels out of the previous tile
-        mSurface.copyFrom( app::copyWindowSurface(), Area( 0, 0, mCurrentArea.getWidth(), mCurrentArea.getHeight() ), mCurrentArea.getUL() );        
+        mSurface.copyFrom( mWindowRef->getRenderer()->copyWindowSurface( Area( ivec2( 0 ) , mWindowRef->getSize() ), mWindowRef->getHeight() ), Area( 0, 0, mCurrentArea.getWidth(), mCurrentArea.getHeight() ), mCurrentArea.getUL() );
     }
     
     int tileX = mCurrentTile % mNumTilesX;
@@ -187,15 +187,16 @@ void Tiler::update()
     gl::pushViewMatrix();
     gl::setViewMatrix( cam.getViewMatrix() );
 
-    if( mDrawFn ) { mDrawFn(); }
+    if( mDrawFn ) {
+        mDrawFn();
+    }
 
     gl::popViewMatrix();
     gl::pushProjectionMatrix();
     gl::popViewport();
     gl::popMatrices();
     
-    if( mDrawHudFn )
-    {
+    if( mDrawHudFn ) {
         mDrawHudFn( ul, ur, lr, ll );
     }
 }
