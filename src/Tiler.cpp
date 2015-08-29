@@ -25,18 +25,21 @@ Tiler::Tiler( int32_t imageWidth, int32_t imageHeight, int32_t tileWidth, int32_
     
     mCurrentTile = -1;
     
-//    cout << "mRetina Ratio: " << app::toPixels( 1.0 ) << endl;
-//    cout << "mWindowWidth : " << mWindowWidth << " mWindowHeight: " << mWindowHeight << endl;
-//    cout << "mImageWidth : " << mImageWidth << " mImageHeight: " << mImageHeight << endl;
-//    cout << "mTileWidth : " << mTileWidth << " mTileHeight: " << mTileHeight << endl;
-//    cout << "mNumTilesX : " << mNumTilesX << " mNumTilesY: " << mNumTilesY << endl;
+    cout << "mRetina Ratio: " << app::toPixels( 1.0 ) << endl;
+    cout << "mWindowWidth : " << mWindowWidth << " mWindowHeight: " << mWindowHeight << endl;
+    cout << "mImageWidth : " << mImageWidth << " mImageHeight: " << mImageHeight << endl;
+    cout << "mTileWidth : " << mTileWidth << " mTileHeight: " << mTileHeight << endl;
+    cout << "mNumTilesX : " << mNumTilesX << " mNumTilesY: " << mNumTilesY << endl;
 }
 
 bool Tiler::nextTile()
 {
     if( mCurrentTile >= mNumTilesX * mNumTilesY ) {
         // suck the pixels out of the final tile
-        mSurface.copyFrom( mWindowRef->getRenderer()->copyWindowSurface( Area( ivec2( 0 ) , mWindowRef->getSize() ), mWindowRef->getHeight() ), Area( 0, 0, mCurrentArea.getWidth(), mCurrentArea.getHeight() ), mCurrentArea.getUL() );
+//        mSurface.copyFrom( mWindowRef->getRenderer()->copyWindowSurface( Area( ivec2( 0 ) , mWindowRef->getSize() ), mCurrentArea.getHeight() ), Area( 0, 0, mCurrentArea.getWidth(), mCurrentArea.getHeight() ), mCurrentArea.getUL() );
+        
+        mSurface.copyFrom( mWindowRef->getRenderer()->copyWindowSurface( Area( ivec2( 0 ) , ci::app::toPixels( mWindowRef->getSize() ) ), mCurrentArea.getHeight() ), Area( 0, 0, mCurrentArea.getWidth(), mCurrentArea.getHeight() ), mCurrentArea.getUL() );
+        
         mCurrentTile = -1;
         return false;
     }
@@ -48,7 +51,9 @@ bool Tiler::nextTile()
     }
     else {
         // suck the pixels out of the previous tile
-        mSurface.copyFrom( mWindowRef->getRenderer()->copyWindowSurface( Area( ivec2( 0 ) , mWindowRef->getSize() ), mWindowRef->getHeight() ), Area( 0, 0, mCurrentArea.getWidth(), mCurrentArea.getHeight() ), mCurrentArea.getUL() );
+        mSurface.copyFrom( mWindowRef->getRenderer()->copyWindowSurface( Area( ivec2( 0 ) , ci::app::toPixels( mWindowRef->getSize() ) ), mCurrentArea.getHeight() ), Area( 0, 0, mCurrentArea.getWidth(), mCurrentArea.getHeight() ), mCurrentArea.getUL() );
+
+//        mSurface.copyFrom( mWindowRef->getRenderer()->copyWindowSurface( Area( ivec2( 0 ) , mWindowRef->getSize() ), mCurrentArea.getHeight() ), Area( 0, 0, mCurrentArea.getWidth(), mCurrentArea.getHeight() ), mCurrentArea.getUL() );
     }
     
     int tileX = mCurrentTile % mNumTilesX;
@@ -158,41 +163,43 @@ void Tiler::update()
     vec2 ur = vec2(ex, sy);
     vec2 lr = vec2(ex, ey);
     vec2 ll = vec2(sx, ey);
-
-    if( mDrawBgFn )
-    {
-        mDrawBgFn( ul, ur, lr, ll );
-    }
     
-    CameraPersp cam = mCamera;
-    gl::pushMatrices();
-    gl::pushViewport();
-    gl::viewport( 0, 0, mCurrentArea.getWidth(), mCurrentArea.getHeight() );
-    gl::pushProjectionMatrix();
-
     float left = mCurrentFrustumCoords.x1 + mCurrentArea.x1 / (float)mImageWidth * mCurrentFrustumCoords.getWidth();
     float right = left + mCurrentArea.getWidth() / (float)mImageWidth * mCurrentFrustumCoords.getWidth();
     float top = mCurrentFrustumCoords.y1 + mCurrentArea.y1 / (float)mImageHeight * mCurrentFrustumCoords.getHeight();
     float bottom = top + mCurrentArea.getHeight() / (float)mImageHeight * mCurrentFrustumCoords.getHeight();
-    
-    if( mCurrentFrustumPersp )
-    {
-        gl::setProjectionMatrix( glm::frustum( left, right, bottom, top, mCurrentFrustumNear, mCurrentFrustumFar ) );
+
+    if( mDrawBgFn ) {
+        gl::pushMatrices();
+        gl::pushViewport();
+        gl::viewport( mCurrentArea.getSize() );
+        mDrawBgFn( ul, ur, lr, ll );
+        gl::popViewport();
+        gl::popMatrices();
     }
-    else
-    {
+    
+    CameraPersp cam = mCamera;
+    gl::pushMatrices();
+    
+    gl::pushViewport();
+    gl::viewport( mCurrentArea.getSize() );
+
+    gl::pushProjectionMatrix();
+    if( mCurrentFrustumPersp ) {
+        gl::setProjectionMatrix( glm::frustum( left, right, bottom, top, mCurrentFrustumNear, mCurrentFrustumFar ) );
+    } else {
         gl::setProjectionMatrix( glm::ortho( left, right, bottom, top, mCurrentFrustumNear, mCurrentFrustumFar ) );
     }
     
     gl::pushViewMatrix();
     gl::setViewMatrix( cam.getViewMatrix() );
-
+    
     if( mDrawFn ) {
         mDrawFn();
     }
 
     gl::popViewMatrix();
-    gl::pushProjectionMatrix();
+    gl::popProjectionMatrix();
     gl::popViewport();
     gl::popMatrices();
     
