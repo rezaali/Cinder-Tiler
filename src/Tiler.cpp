@@ -24,12 +24,11 @@ Tiler::Tiler( int32_t imageWidth, int32_t imageHeight, int32_t tileWidth, int32_
     mNumTilesY = ( int32_t ) ceil( mImageHeight / (float)mTileHeight );
     
     mCurrentTile = -1;
-    
-    cout << "mRetina Ratio: " << app::toPixels( 1.0 ) << endl;
-    cout << "mWindowWidth : " << mWindowWidth << " mWindowHeight: " << mWindowHeight << endl;
-    cout << "mImageWidth : " << mImageWidth << " mImageHeight: " << mImageHeight << endl;
-    cout << "mTileWidth : " << mTileWidth << " mTileHeight: " << mTileHeight << endl;
-    cout << "mNumTilesX : " << mNumTilesX << " mNumTilesY: " << mNumTilesY << endl;
+//    cout << "mRetina Ratio: " << app::toPixels( 1.0 ) << endl;
+//    cout << "mWindowWidth : " << mWindowWidth << " mWindowHeight: " << mWindowHeight << endl;
+//    cout << "mImageWidth : " << mImageWidth << " mImageHeight: " << mImageHeight << endl;
+//    cout << "mTileWidth : " << mTileWidth << " mTileHeight: " << mTileHeight << endl;
+//    cout << "mNumTilesX : " << mNumTilesX << " mNumTilesY: " << mNumTilesY << endl;
 }
 
 bool Tiler::nextTile()
