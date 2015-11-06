@@ -11,8 +11,8 @@ using namespace cinder;
 using namespace glm;
 using namespace std;
 
-Tiler::Tiler( int32_t imageWidth, int32_t imageHeight, int32_t tileWidth, int32_t tileHeight, ci::app::WindowRef window )
-: mImageWidth( app::toPixels( imageWidth ) ), mImageHeight( app::toPixels( imageHeight ) ), mWindowRef( window ), mDrawFn( nullptr ), mDrawBgFn( nullptr ), mDrawHudFn( nullptr )
+Tiler::Tiler( int32_t imageWidth, int32_t imageHeight, int32_t tileWidth, int32_t tileHeight, ci::app::WindowRef window, bool alpha )
+: mImageWidth( app::toPixels( imageWidth ) ), mImageHeight( app::toPixels( imageHeight ) ), mWindowRef( window ), mDrawFn( nullptr ), mDrawBgFn( nullptr ), mDrawHudFn( nullptr ), mAlpha( alpha )
 {
     mWindowWidth = app::toPixels( mWindowRef->getWidth() );
     mWindowHeight = app::toPixels( mWindowRef->getHeight() );
@@ -24,35 +24,37 @@ Tiler::Tiler( int32_t imageWidth, int32_t imageHeight, int32_t tileWidth, int32_
     mNumTilesY = ( int32_t ) ceil( mImageHeight / (float)mTileHeight );
     
     mCurrentTile = -1;
-//    cout << "mRetina Ratio: " << app::toPixels( 1.0 ) << endl;
-//    cout << "mWindowWidth : " << mWindowWidth << " mWindowHeight: " << mWindowHeight << endl;
-//    cout << "mImageWidth : " << mImageWidth << " mImageHeight: " << mImageHeight << endl;
-//    cout << "mTileWidth : " << mTileWidth << " mTileHeight: " << mTileHeight << endl;
-//    cout << "mNumTilesX : " << mNumTilesX << " mNumTilesY: " << mNumTilesY << endl;
+    
+    if( mAlpha ) {
+        mFboRef = gl::Fbo::create( mWindowWidth, mWindowHeight, mAlpha );
+        mFboRef->bindFramebuffer();
+        gl::clear( ColorA( 0.0f, 0.0f, 0.0f, 0.0f ) );
+        mFboRef->unbindFramebuffer();
+    }
 }
 
 bool Tiler::nextTile()
 {
     if( mCurrentTile >= mNumTilesX * mNumTilesY ) {
-        // suck the pixels out of the final tile
-//        mSurface.copyFrom( mWindowRef->getRenderer()->copyWindowSurface( Area( ivec2( 0 ) , mWindowRef->getSize() ), mCurrentArea.getHeight() ), Area( 0, 0, mCurrentArea.getWidth(), mCurrentArea.getHeight() ), mCurrentArea.getUL() );
-        
-        mSurface.copyFrom( mWindowRef->getRenderer()->copyWindowSurface( Area( ivec2( 0 ) , ci::app::toPixels( mWindowRef->getSize() ) ), mCurrentArea.getHeight() ), Area( 0, 0, mCurrentArea.getWidth(), mCurrentArea.getHeight() ), mCurrentArea.getUL() );
-        
+        if( mAlpha ) {
+            mSurface.copyFrom( mFboRef->readPixels8u( Area( ivec2( 0 ) , ci::app::toPixels( mWindowRef->getSize() ) ), mCurrentArea.getHeight() ), Area( 0, 0, mCurrentArea.getWidth(), mCurrentArea.getHeight() ), mCurrentArea.getUL() );
+        } else {
+            mSurface.copyFrom( mWindowRef->getRenderer()->copyWindowSurface( Area( ivec2( 0 ) , mWindowRef->getSize() ), mCurrentArea.getHeight() ), Area( 0, 0, mCurrentArea.getWidth(), mCurrentArea.getHeight() ), mCurrentArea.getUL() );
+        }
         mCurrentTile = -1;
         return false;
     }
     
-    if( mCurrentTile == -1 )
-    { // first tile of this frame
+    if( mCurrentTile == -1 ) {
         mCurrentTile = 0;
-        mSurface = Surface( mImageWidth, mImageHeight, false );
+        mSurface = Surface( mImageWidth, mImageHeight, mAlpha );
     }
     else {
-        // suck the pixels out of the previous tile
-        mSurface.copyFrom( mWindowRef->getRenderer()->copyWindowSurface( Area( ivec2( 0 ) , ci::app::toPixels( mWindowRef->getSize() ) ), mCurrentArea.getHeight() ), Area( 0, 0, mCurrentArea.getWidth(), mCurrentArea.getHeight() ), mCurrentArea.getUL() );
-
-//        mSurface.copyFrom( mWindowRef->getRenderer()->copyWindowSurface( Area( ivec2( 0 ) , mWindowRef->getSize() ), mCurrentArea.getHeight() ), Area( 0, 0, mCurrentArea.getWidth(), mCurrentArea.getHeight() ), mCurrentArea.getUL() );
+        if( mAlpha ) {
+            mSurface.copyFrom( mFboRef->readPixels8u( Area( ivec2( 0 ) , ci::app::toPixels( mWindowRef->getSize() ) ), mCurrentArea.getHeight() ), Area( 0, 0, mCurrentArea.getWidth(), mCurrentArea.getHeight() ), mCurrentArea.getUL() );
+        } else {            
+            mSurface.copyFrom( mWindowRef->getRenderer()->copyWindowSurface( Area( ivec2( 0 ) , ci::app::toPixels( mWindowRef->getSize() ) ), mCurrentArea.getHeight() ), Area( 0, 0, mCurrentArea.getWidth(), mCurrentArea.getHeight() ), mCurrentArea.getUL() );
+        }
     }
     
     int tileX = mCurrentTile % mNumTilesX;
@@ -65,12 +67,6 @@ bool Tiler::nextTile()
     mCurrentArea.x2 = mCurrentArea.x1 + currentTileWidth;
     mCurrentArea.y1 = tileY * mTileHeight;
     mCurrentArea.y2 = mCurrentArea.y1 + currentTileHeight;
-    
-//    cout << "TILE NUMBER: " << mCurrentTile << endl;
-//    cout << "mCurrentArea.x1: " << mCurrentArea.x1 << " mCurrentArea.y1: " << mCurrentArea.y1 << endl;
-//    cout << "mCurrentArea.x2: " << mCurrentArea.x2 << " mCurrentArea.y2: " << mCurrentArea.y2 << endl;
-//    cout << "AREA: " << mCurrentArea.getWidth() << " " << mCurrentArea.getHeight() << endl;
-//    cout << endl; 
     
     update();
     mCurrentTile++;
@@ -104,6 +100,11 @@ void Tiler::ortho( float left, float right, float bottom, float top, float nearP
     mCurrentFrustumPersp = false;
 }
 
+bool Tiler::getAlpha()
+{
+    return mAlpha; 
+}
+
 ci::Surface Tiler::getSurface()
 {
     while ( nextTile() ) { }
@@ -128,35 +129,28 @@ void Tiler::setDrawHudFn( const std::function<void( glm::vec2, glm::vec2, glm::v
 void Tiler::setMatrices( const CameraPersp &camera )
 {
     mCamera = camera;
-    
     float left, top, right, bottom, nearPlane, farPlane;
     camera.getFrustum( &left, &top, &right, &bottom, &nearPlane, &farPlane );
-
-//    cout << endl;
-//    cout << "LEFT: " << left << endl;
-//    cout << "RIGHT: " << right << endl;
-//    cout << "TOP: " << top << endl;
-//    cout << "BOTTOM: " << bottom << endl;
-//    cout << "NEAR: " << nearPlane << endl;
-//    cout << "FAR: " << farPlane << endl;
-//    cout << endl;
     
-    if( camera.isPersp() )
-    {
+    if( camera.isPersp() ) {
         frustum( left, right, bottom, top, nearPlane, farPlane );
     }
-    else
-    {
+    else {
         ortho( left, right, bottom, top, nearPlane, farPlane );
     }
 }
 
 void Tiler::update()
 {
-    float sx = (float) mCurrentArea.x1 / (float)mImageWidth;
-    float sy = (float) mCurrentArea.y1 / (float)mImageHeight;
-    float ex = (float) mCurrentArea.x2 / (float)mImageWidth;
-    float ey = (float) mCurrentArea.y2 / (float)mImageHeight;
+    if( mAlpha ) {
+        mFboRef->bindFramebuffer();
+        gl::clear( ColorA( 0.0f, 0.0f, 0.0f, 0.0f ) );
+    }
+    
+    float sx = (float) mCurrentArea.x1 / (float) mImageWidth;
+    float sy = (float) mCurrentArea.y1 / (float) mImageHeight;
+    float ex = (float) mCurrentArea.x2 / (float) mImageWidth;
+    float ey = (float) mCurrentArea.y2 / (float) mImageHeight;
     
     vec2 ul = vec2(sx, sy);
     vec2 ur = vec2(ex, sy);
@@ -204,5 +198,9 @@ void Tiler::update()
     
     if( mDrawHudFn ) {
         mDrawHudFn( ul, ur, lr, ll );
+    }
+    
+    if( mAlpha ) {
+        mFboRef->unbindFramebuffer();
     }
 }

@@ -14,14 +14,14 @@ namespace reza { namespace tiler {
 typedef std::shared_ptr<class Tiler> TilerRef;
 class Tiler {
 public:
-    static TilerRef create( glm::ivec2 imageSize, glm::ivec2 tileSize = glm::ivec2( 512, 512 ), ci::app::WindowRef window = ci::app::getWindow() )
+    static TilerRef create( glm::ivec2 imageSize, glm::ivec2 tileSize = glm::ivec2( 512, 512 ), ci::app::WindowRef window = ci::app::getWindow(), bool alpha  = false )
     {
-        return TilerRef( new Tiler( imageSize.x, imageSize.y, tileSize.x, tileSize.y, window ) );
+        return TilerRef( new Tiler( imageSize.x, imageSize.y, tileSize.x, tileSize.y, window, alpha ) );
     }
     
-    static TilerRef create( int32_t imageWidth, int32_t imageHeight, int32_t tileWidth = 512, int32_t tileHeight = 512, ci::app::WindowRef window = ci::app::getWindow() )
+    static TilerRef create( int32_t imageWidth, int32_t imageHeight, int32_t tileWidth = 512, int32_t tileHeight = 512, ci::app::WindowRef window = ci::app::getWindow(), bool alpha = false )
     {
-        return TilerRef( new Tiler( imageWidth, imageHeight, tileWidth, tileHeight, window ) );
+        return TilerRef( new Tiler( imageWidth, imageHeight, tileWidth, tileHeight, window, alpha ) );
     }
     
     bool nextTile();
@@ -42,8 +42,10 @@ public:
     void frustum( float left, float right, float bottom, float top, float nearPlane, float farPlane );
     void ortho( float left, float right, float bottom, float top, float nearPlane, float farPlane ); 
     
+    bool getAlpha(); 
+    
 protected:
-    Tiler( int32_t imageWidth, int32_t imageHeight, int32_t tileWidth = 512, int32_t tileHeight = 512, ci::app::WindowRef window = ci::app::getWindow() );
+    Tiler( int32_t imageWidth, int32_t imageHeight, int32_t tileWidth = 512, int32_t tileHeight = 512, ci::app::WindowRef window = ci::app::getWindow(), bool alpha = false );
     
     void update();
     
@@ -62,9 +64,12 @@ protected:
 
     ci::CameraPersp mCamera;
     ci::Surface	mSurface;
-    std::function<void()> mDrawFn;
-    std::function<void( glm::vec2,glm::vec2,glm::vec2,glm::vec2 )> mDrawBgFn;
-    std::function<void( glm::vec2,glm::vec2,glm::vec2,glm::vec2 )> mDrawHudFn;
+
+    bool mAlpha = false;
+    ci::gl::FboRef mFboRef = nullptr; 
+    std::function<void()> mDrawFn = nullptr;
+    std::function<void( glm::vec2,glm::vec2,glm::vec2,glm::vec2 )> mDrawBgFn = nullptr;
+    std::function<void( glm::vec2,glm::vec2,glm::vec2,glm::vec2 )> mDrawHudFn = nullptr;
 };
 
 } } // namespace cinder::gl
