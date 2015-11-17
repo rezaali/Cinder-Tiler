@@ -35,11 +35,11 @@ Tiler::Tiler( int32_t imageWidth, int32_t imageHeight, int32_t tileWidth, int32_
 
 bool Tiler::nextTile()
 {
-    if( mCurrentTile >= mNumTilesX * mNumTilesY ) {
+    if( mCurrentTile == mNumTilesX * mNumTilesY ) {
         if( mAlpha ) {
             mSurface.copyFrom( mFboRef->readPixels8u( Area( ivec2( 0 ) , ci::app::toPixels( mWindowRef->getSize() ) ), mCurrentArea.getHeight() ), Area( 0, 0, mCurrentArea.getWidth(), mCurrentArea.getHeight() ), mCurrentArea.getUL() );
         } else {
-            mSurface.copyFrom( mWindowRef->getRenderer()->copyWindowSurface( Area( ivec2( 0 ) , mWindowRef->getSize() ), mCurrentArea.getHeight() ), Area( 0, 0, mCurrentArea.getWidth(), mCurrentArea.getHeight() ), mCurrentArea.getUL() );
+            mSurface.copyFrom( mWindowRef->getRenderer()->copyWindowSurface( Area( ivec2( 0 ) , ci::app::toPixels( mWindowRef->getSize() ) ), mCurrentArea.getHeight() ), Area( 0, 0, mCurrentArea.getWidth(), mCurrentArea.getHeight() ), mCurrentArea.getUL() );
         }
         mCurrentTile = -1;
         return false;
