@@ -26,7 +26,8 @@ Tiler::Tiler( int32_t imageWidth, int32_t imageHeight, int32_t tileWidth, int32_
     mCurrentTile = -1;
     
     if( mAlpha ) {
-        mFboRef = gl::Fbo::create( mWindowWidth, mWindowHeight, mAlpha );
+        auto fmt = gl::Fbo::Format().samples( gl::Fbo::getMaxSamples() );
+        mFboRef = gl::Fbo::create( mWindowWidth, mWindowHeight, fmt );
         mFboRef->bindFramebuffer();
         gl::clear( ColorA( 0.0f, 0.0f, 0.0f, 0.0f ) );
         mFboRef->unbindFramebuffer();
@@ -37,9 +38,9 @@ bool Tiler::nextTile()
 {
     if( mCurrentTile == mNumTilesX * mNumTilesY ) {
         if( mAlpha ) {
-            mSurface.copyFrom( mFboRef->readPixels8u( Area( ivec2( 0 ) , ci::app::toPixels( mWindowRef->getSize() ) ), mCurrentArea.getHeight() ), Area( 0, 0, mCurrentArea.getWidth(), mCurrentArea.getHeight() ), mCurrentArea.getUL() );
+            mSurfaceRef->copyFrom( mFboRef->readPixels8u( Area( ivec2( 0 ) , ci::app::toPixels( mWindowRef->getSize() ) ), mCurrentArea.getHeight() ), Area( 0, 0, mCurrentArea.getWidth(), mCurrentArea.getHeight() ), mCurrentArea.getUL() );
         } else {
-            mSurface.copyFrom( mWindowRef->getRenderer()->copyWindowSurface( Area( ivec2( 0 ) , ci::app::toPixels( mWindowRef->getSize() ) ), mCurrentArea.getHeight() ), Area( 0, 0, mCurrentArea.getWidth(), mCurrentArea.getHeight() ), mCurrentArea.getUL() );
+            mSurfaceRef->copyFrom( mWindowRef->getRenderer()->copyWindowSurface( Area( ivec2( 0 ) , ci::app::toPixels( mWindowRef->getSize() ) ), mCurrentArea.getHeight() ), Area( 0, 0, mCurrentArea.getWidth(), mCurrentArea.getHeight() ), mCurrentArea.getUL() );
         }
         mCurrentTile = -1;
         return false;
@@ -47,13 +48,18 @@ bool Tiler::nextTile()
     
     if( mCurrentTile == -1 ) {
         mCurrentTile = 0;
-        mSurface = Surface( mImageWidth, mImageHeight, mAlpha );
+        if( mSurfaceRef && mSurfaceRef->getSize() != ivec2( mImageWidth, mImageHeight ) ) {
+            mSurfaceRef = Surface::create( mImageWidth, mImageHeight, mAlpha );
+        }
+        else {
+            mSurfaceRef = Surface::create( mImageWidth, mImageHeight, mAlpha );
+        }
     }
     else {
         if( mAlpha ) {
-            mSurface.copyFrom( mFboRef->readPixels8u( Area( ivec2( 0 ) , ci::app::toPixels( mWindowRef->getSize() ) ), mCurrentArea.getHeight() ), Area( 0, 0, mCurrentArea.getWidth(), mCurrentArea.getHeight() ), mCurrentArea.getUL() );
+            mSurfaceRef->copyFrom( mFboRef->readPixels8u( Area( ivec2( 0 ) , ci::app::toPixels( mWindowRef->getSize() ) ), mCurrentArea.getHeight() ), Area( 0, 0, mCurrentArea.getWidth(), mCurrentArea.getHeight() ), mCurrentArea.getUL() );
         } else {            
-            mSurface.copyFrom( mWindowRef->getRenderer()->copyWindowSurface( Area( ivec2( 0 ) , ci::app::toPixels( mWindowRef->getSize() ) ), mCurrentArea.getHeight() ), Area( 0, 0, mCurrentArea.getWidth(), mCurrentArea.getHeight() ), mCurrentArea.getUL() );
+            mSurfaceRef->copyFrom( mWindowRef->getRenderer()->copyWindowSurface( Area( ivec2( 0 ) , ci::app::toPixels( mWindowRef->getSize() ) ), mCurrentArea.getHeight() ), Area( 0, 0, mCurrentArea.getWidth(), mCurrentArea.getHeight() ), mCurrentArea.getUL() );
         }
     }
     
@@ -105,10 +111,10 @@ bool Tiler::getAlpha()
     return mAlpha; 
 }
 
-ci::Surface Tiler::getSurface()
+ci::Surface& Tiler::getSurface()
 {
     while ( nextTile() ) { }
-    return mSurface;
+    return *mSurfaceRef;
 }
 
 void Tiler::setDrawBgFn( const std::function<void( glm::vec2, glm::vec2, glm::vec2, glm::vec2 )> &drawBgFn )

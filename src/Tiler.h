@@ -30,7 +30,7 @@ public:
     int32_t	getImageHeight() const { return mImageHeight; }
     float getImageAspectRatio() const { return mImageWidth / (float)mImageHeight; }
     ci::Area getCurrentTileArea() const { return mCurrentArea; }
-    ci::Surface getSurface();
+    ci::Surface& getSurface();
     
     void setDrawBgFn( const std::function<void( glm::vec2, glm::vec2, glm::vec2, glm::vec2 )> &drawBgFn );
     void setDrawFn( const std::function<void()> &drawFn );
@@ -63,7 +63,7 @@ protected:
     bool mCurrentFrustumPersp;
 
     ci::CameraPersp mCamera;
-    ci::Surface	mSurface;
+    ci::SurfaceRef	mSurfaceRef;
 
     bool mAlpha = false;
     ci::gl::FboRef mFboRef = nullptr; 
