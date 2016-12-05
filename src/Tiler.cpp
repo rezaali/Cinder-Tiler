@@ -154,20 +154,15 @@ void Tiler::update()
     }
     
     float sx = (float) mCurrentArea.x1 / (float) mImageWidth;
-    float sy = (float) mCurrentArea.y1 / (float) mImageHeight;
+    float sy = 1.0 - (float) mCurrentArea.y1 / (float) mImageHeight;
     float ex = (float) mCurrentArea.x2 / (float) mImageWidth;
-    float ey = (float) mCurrentArea.y2 / (float) mImageHeight;
+    float ey = 1.0 - (float) mCurrentArea.y2 / (float) mImageHeight;
     
-    vec2 ul = vec2(sx, sy);
-    vec2 ur = vec2(ex, sy);
-    vec2 lr = vec2(ex, ey);
-    vec2 ll = vec2(sx, ey);
+    vec2 ul = vec2( sx, sy );
+    vec2 ur = vec2( ex, sy );
+    vec2 lr = vec2( ex, ey );
+    vec2 ll = vec2( sx, ey );
     
-    float left = mCurrentFrustumCoords.x1 + mCurrentArea.x1 / (float)mImageWidth * mCurrentFrustumCoords.getWidth();
-    float right = left + mCurrentArea.getWidth() / (float)mImageWidth * mCurrentFrustumCoords.getWidth();
-    float top = mCurrentFrustumCoords.y1 + mCurrentArea.y1 / (float)mImageHeight * mCurrentFrustumCoords.getHeight();
-    float bottom = top + mCurrentArea.getHeight() / (float)mImageHeight * mCurrentFrustumCoords.getHeight();
-
     if( mDrawBgFn ) {
         gl::pushMatrices();
         gl::pushViewport();
@@ -176,6 +171,11 @@ void Tiler::update()
         gl::popViewport();
         gl::popMatrices();
     }
+    
+    float left = mCurrentFrustumCoords.x1 + mCurrentArea.x1 / (float)mImageWidth * mCurrentFrustumCoords.getWidth();
+    float right = left + mCurrentArea.getWidth() / (float)mImageWidth * mCurrentFrustumCoords.getWidth();
+    float top = mCurrentFrustumCoords.y1 + mCurrentArea.y1 / (float)mImageHeight * mCurrentFrustumCoords.getHeight();
+    float bottom = top + mCurrentArea.getHeight() / (float)mImageHeight * mCurrentFrustumCoords.getHeight();
     
     CameraPersp cam = mCamera;
     gl::pushMatrices();
