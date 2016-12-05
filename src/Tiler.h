@@ -2,6 +2,7 @@
 
 #include "cinder/Cinder.h"
 #include "cinder/app/Window.h"
+#include "cinder/app/AppBase.h"
 #include "cinder/gl/gl.h"
 #include "cinder/Exception.h"
 #include "cinder/Surface.h"

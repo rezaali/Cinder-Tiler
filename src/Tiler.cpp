@@ -12,13 +12,13 @@ using namespace glm;
 using namespace std;
 
 Tiler::Tiler( int32_t imageWidth, int32_t imageHeight, int32_t tileWidth, int32_t tileHeight, ci::app::WindowRef window, bool alpha )
-: mImageWidth( app::toPixels( imageWidth ) ), mImageHeight( app::toPixels( imageHeight ) ), mWindowRef( window ), mDrawFn( nullptr ), mDrawBgFn( nullptr ), mDrawHudFn( nullptr ), mAlpha( alpha )
+: mImageWidth( (int)app::toPixels( (float)imageWidth ) ), mImageHeight( (int)app::toPixels( (float)imageHeight ) ), mWindowRef( window ), mDrawFn( nullptr ), mDrawBgFn( nullptr ), mDrawHudFn( nullptr ), mAlpha( alpha )
 {
-    mWindowWidth = app::toPixels( mWindowRef->getWidth() );
-    mWindowHeight = app::toPixels( mWindowRef->getHeight() );
+    mWindowWidth = (int)app::toPixels( (float)mWindowRef->getWidth() );
+    mWindowHeight = (int)app::toPixels( (float)mWindowRef->getHeight() );
     
-    mTileWidth = std::min( ( int32_t ) app::toPixels( tileWidth ), mWindowWidth );
-    mTileHeight = std::min( ( int32_t ) app::toPixels( tileHeight ), mWindowHeight );
+    mTileWidth = std::min( ( int32_t ) app::toPixels( (float)tileWidth ), mWindowWidth );
+    mTileHeight = std::min( ( int32_t ) app::toPixels( (float)tileHeight ), mWindowHeight );
 
     mNumTilesX = ( int32_t ) ceil( mImageWidth / (float)mTileWidth );
     mNumTilesY = ( int32_t ) ceil( mImageHeight / (float)mTileHeight );
