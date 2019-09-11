@@ -43,15 +43,15 @@ class Tiler {
 		return TilerRef( new Tiler( imageSize.x, imageSize.y, tileSize.x, tileSize.y, window, alpha ) );
 	}
 
-	static TilerRef create( int32_t imageWidth, int32_t imageHeight, int32_t tileWidth = 512, int32_t tileHeight = 512, ci::app::WindowRef window = ci::app::getWindow(), bool alpha = false )
+	static TilerRef create( int imageWidth, int imageHeight, int tileWidth = 512, int tileHeight = 512, ci::app::WindowRef window = ci::app::getWindow(), bool alpha = false )
 	{
 		return TilerRef( new Tiler( imageWidth, imageHeight, tileWidth, tileHeight, window, alpha ) );
 	}
 
 	bool nextTile();
 
-	int32_t getImageWidth() const { return mImageWidth; }
-	int32_t getImageHeight() const { return mImageHeight; }
+	int getImageWidth() const { return mImageWidth; }
+	int getImageHeight() const { return mImageHeight; }
 	float getImageAspectRatio() const { return mImageWidth / (float)mImageHeight; }
 	ci::Area getCurrentTileArea() const { return mCurrentArea; }
 	ci::Surface &getSurface();
@@ -63,26 +63,26 @@ class Tiler {
 
 	void setMatrices( const ci::CameraPersp &camera );
 	void setMatricesWindowPersp( int screenWidth, int screenHeight, float fovDegrees, float nearPlane, float farPlane );
-	void setMatricesWindow( int32_t windowWidth, int32_t windowHeight );
+	void setMatricesWindow( int windowWidth, int windowHeight );
 	void frustum( float left, float right, float bottom, float top, float nearPlane, float farPlane );
 	void ortho( float left, float right, float bottom, float top, float nearPlane, float farPlane );
 
 	bool getAlpha();
 
   protected:
-	Tiler( int32_t imageWidth, int32_t imageHeight, int32_t tileWidth = 512, int32_t tileHeight = 512, ci::app::WindowRef window = ci::app::getWindow(), bool alpha = false );
+	Tiler( int imageWidth, int imageHeight, int tileWidth = 512, int tileHeight = 512, ci::app::WindowRef window = ci::app::getWindow(), bool alpha = false );
 
 	void update();
 	ci::gl::FboRef setupFbo();
 
 	ci::app::WindowRef mWindowRef;
 
-	int32_t mWindowWidth, mWindowHeight;
-	int32_t mImageWidth, mImageHeight;
-	int32_t mTileWidth, mTileHeight;
-	int32_t mNumTilesX, mNumTilesY;
+	int mWindowWidth, mWindowHeight;
+	int mImageWidth, mImageHeight;
+	int mTileWidth, mTileHeight;
+	int mNumTilesX, mNumTilesY;
 
-	int32_t mCurrentTile;
+	int mCurrentTile;
 	ci::Area mCurrentArea;
 	ci::Rectf mCurrentFrustumCoords;
 	float mCurrentFrustumNear, mCurrentFrustumFar;

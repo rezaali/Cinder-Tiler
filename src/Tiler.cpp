@@ -11,17 +11,17 @@ using namespace cinder;
 using namespace glm;
 using namespace std;
 
-Tiler::Tiler( int32_t imageWidth, int32_t imageHeight, int32_t tileWidth, int32_t tileHeight, ci::app::WindowRef window, bool alpha )
+Tiler::Tiler( int imageWidth, int imageHeight, int tileWidth, int tileHeight, ci::app::WindowRef window, bool alpha )
 	: mImageWidth( (int)app::toPixels( (float)imageWidth ) ), mImageHeight( (int)app::toPixels( (float)imageHeight ) ), mWindowRef( window ), mDrawFn( nullptr ), mDrawBgFn( nullptr ), mDrawHudFn( nullptr ), mAlpha( alpha )
 {
 	mWindowWidth = (int)app::toPixels( (float)mWindowRef->getWidth() );
 	mWindowHeight = (int)app::toPixels( (float)mWindowRef->getHeight() );
 
-	mTileWidth = std::min( (int32_t)app::toPixels( (float)tileWidth ), mWindowWidth );
-	mTileHeight = std::min( (int32_t)app::toPixels( (float)tileHeight ), mWindowHeight );
+	mTileWidth = std::min( (int)app::toPixels( (float)tileWidth ), mWindowWidth );
+	mTileHeight = std::min( (int)app::toPixels( (float)tileHeight ), mWindowHeight );
 
-	mNumTilesX = (int32_t)ceil( mImageWidth / (float)mTileWidth );
-	mNumTilesY = (int32_t)ceil( mImageHeight / (float)mTileHeight );
+	mNumTilesX = (int)ceil( mImageWidth / (float)mTileWidth );
+	mNumTilesY = (int)ceil( mImageHeight / (float)mTileHeight );
 
 	mCurrentTile = -1;
 
@@ -86,7 +86,7 @@ void Tiler::setMatricesWindowPersp( int screenWidth, int screenHeight, float fov
 	setMatrices( cam );
 }
 
-void Tiler::setMatricesWindow( int32_t windowWidth, int32_t windowHeight )
+void Tiler::setMatricesWindow( int windowWidth, int windowHeight )
 {
 	ortho( 0, (float)windowWidth, (float)windowHeight, 0, -1.0f, 1.0f );
 }
